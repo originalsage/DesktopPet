@@ -5,10 +5,21 @@ from PyQt5.QtCore import Qt, QTimer, QPoint
 from PyQt5.QtGui import QPixmap, QCursor, QPainter, QColor, QIcon
 import os
 
+def resource_path(relative_path):
+    """获取资源文件的绝对路径，用于处理PyInstaller打包后的资源路径问题"""
+    try:
+        # PyInstaller创建临时文件夹，将路径存储在_MEIPASS中
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    
+    return os.path.join(base_path, relative_path)
+
 class DesktopPet(QWidget):
     def __init__(self):
         super().__init__()
         self.is_transparent = False  # 标记是否处于穿透状态
+        self.is_visible = True       # 标记窗口是否可见
         self.init_ui()
         self.init_pet_logic()
         self.create_tray_icon()
@@ -19,8 +30,11 @@ class DesktopPet(QWidget):
         self.tray_icon.setToolTip("lls pet")
         
         # 设置托盘图标
-        if os.path.exists("img/NodeCircle.png"):
-            tray_pixmap = QPixmap("img/NodeCircle.png")
+        if os.path.exists(resource_path("img/lls.png")):
+            tray_pixmap = QPixmap(resource_path("img/lls.png"))
+            self.tray_icon.setIcon(QIcon(tray_pixmap))
+        elif os.path.exists(resource_path("img/NodeCircle.png")):
+            tray_pixmap = QPixmap(resource_path("img/NodeCircle.png"))
             tray_pixmap = self.change_pixmap_color(tray_pixmap, QColor(255, 192, 203))
             self.tray_icon.setIcon(QIcon(tray_pixmap))
         else:
@@ -69,15 +83,19 @@ class DesktopPet(QWidget):
             self.toggle_transparent_action.setText("切换穿透状态")
             
         self.setAttribute(Qt.WA_TranslucentBackground)
-        self.show()  # 重新显示窗口以应用新属性
+        # 只有在窗口应该是可见的时候才显示
+        if self.is_visible:
+            self.show()  # 重新显示窗口以应用新属性
         
     def toggle_visibility(self):
         """切换桌宠可见性"""
-        if self.isVisible():
+        if self.is_visible:
             self.hide()
+            self.is_visible = False
             self.toggle_visibility_action.setText("显示桌宠")
         else:
             self.show()
+            self.is_visible = True
             self.toggle_visibility_action.setText("隐藏桌宠")
             
     def quit_application(self):
@@ -109,16 +127,16 @@ class DesktopPet(QWidget):
         self.node_halo = QLabel(self.pet_container)
         self.node_circle = QLabel(self.pet_container)
             
-        if os.path.exists("img/NodeHalo.png"):
-            self.halo_pixmap = QPixmap("img/NodeHalo.png")
+        if os.path.exists(resource_path("img/NodeHalo.png")):
+            self.halo_pixmap = QPixmap(resource_path("img/NodeHalo.png"))
             self.halo_pixmap = self.change_pixmap_color(self.halo_pixmap, QColor(255, 192, 203))  # 粉色
         else:
             # 如果找不到光环图片，则创建一个默认的占位图片
             self.halo_pixmap = QPixmap(100, 100)
             self.halo_pixmap.fill(Qt.transparent)
 
-        if os.path.exists("img/NodeCircle.png"):
-            self.circle_pixmap = QPixmap("img/NodeCircle.png")
+        if os.path.exists(resource_path("img/NodeCircle.png")):
+            self.circle_pixmap = QPixmap(resource_path("img/NodeCircle.png"))
             # 将图片颜色修改为粉色
             self.circle_pixmap = self.change_pixmap_color(self.circle_pixmap, QColor(255, 192, 203))  # 粉色
         else:
@@ -197,7 +215,6 @@ class DesktopPet(QWidget):
             # 动态速度：距离越远速度越快
             speed_factor = 0.006  # 增大速度系数
             dynamic_speed = max(0.5, self.speed + distance * speed_factor)
-            print(dynamic_speed)
             # 使用浮点数计算避免精度损失
             move_ratio = min(dynamic_speed / max(distance, 1), 1.0)
             new_x = self.pet_pos.x() + delta_x * move_ratio  # 保持浮点数
