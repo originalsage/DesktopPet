@@ -82,7 +82,10 @@ class DesktopPet(QWidget):
             
     def quit_application(self):
         """退出应用程序"""
+        # 先隐藏托盘图标，然后再退出应用
+        self.tray_icon.hide()
         QApplication.quit()
+        sys.exit(0)  # 确保程序完全退出
         
     def keyPressEvent(self, event):
         # 按V键切换为穿透状态
@@ -170,6 +173,9 @@ class DesktopPet(QWidget):
         
         # 移动速度
         self.speed = 1.0
+        
+        # 添加最小移动距离以防止卡住
+        self.min_move_distance = 1
 
     def update_position(self):
         # 获取鼠标位置
@@ -189,14 +195,16 @@ class DesktopPet(QWidget):
         # 精确判断是否需要继续移动
         if distance > 2:  # 设置更合理的停止阈值
             # 动态速度：距离越远速度越快
-            speed_factor = 0.01  # 增大速度系数
+            speed_factor = 0.006  # 增大速度系数
             dynamic_speed = max(0.5, self.speed + distance * speed_factor)
-            
+            print(dynamic_speed)
             # 使用浮点数计算避免精度损失
             move_ratio = min(dynamic_speed / max(distance, 1), 1.0)
             new_x = self.pet_pos.x() + delta_x * move_ratio  # 保持浮点数
             new_y = self.pet_pos.y() + delta_y * move_ratio  # 保持浮点数
-            self.pet_pos = QPoint(int(new_x), int(new_y))    # 最后转换为整数
+            
+            # 使用 round 而不是 int 来避免精度损失，并确保即使是很小的距离也能移动
+            self.pet_pos = QPoint(round(new_x), round(new_y))
             self.move(self.pet_pos)
 
     def mousePressEvent(self, event):
