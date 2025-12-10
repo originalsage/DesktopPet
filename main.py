@@ -19,12 +19,15 @@ class DesktopPet(QWidget):
         self.tray_icon.setToolTip("lls pet")
         
         # 设置托盘图标
-        if os.path.exists("NodeCircle.png"):
-            tray_pixmap = QPixmap("NodeCircle.png")
+        if os.path.exists("img/NodeCircle.png"):
+            tray_pixmap = QPixmap("img/NodeCircle.png")
             tray_pixmap = self.change_pixmap_color(tray_pixmap, QColor(255, 192, 203))
             self.tray_icon.setIcon(QIcon(tray_pixmap))
         else:
-            self.tray_icon.setIcon(QIcon())
+            # 如果找不到托盘图标文件，使用默认的粉色圆形图标
+            default_icon = QPixmap(64, 64)
+            default_icon.fill(QColor(255, 192, 203))
+            self.tray_icon.setIcon(QIcon(default_icon))
         
         # 创建托盘菜单
         self.tray_menu = QMenu()
@@ -103,17 +106,25 @@ class DesktopPet(QWidget):
         self.node_halo = QLabel(self.pet_container)
         self.node_circle = QLabel(self.pet_container)
             
-        if os.path.exists("NodeHalo.png"):
-            self.halo_pixmap = QPixmap("NodeHalo.png")
+        if os.path.exists("img/NodeHalo.png"):
+            self.halo_pixmap = QPixmap("img/NodeHalo.png")
             self.halo_pixmap = self.change_pixmap_color(self.halo_pixmap, QColor(255, 192, 203))  # 粉色
+        else:
+            # 如果找不到光环图片，则创建一个默认的占位图片
+            self.halo_pixmap = QPixmap(100, 100)
+            self.halo_pixmap.fill(Qt.transparent)
 
-        if os.path.exists("NodeCircle.png"):
-            self.circle_pixmap = QPixmap("NodeCircle.png")
+        if os.path.exists("img/NodeCircle.png"):
+            self.circle_pixmap = QPixmap("img/NodeCircle.png")
             # 将图片颜色修改为粉色
             self.circle_pixmap = self.change_pixmap_color(self.circle_pixmap, QColor(255, 192, 203))  # 粉色
+        else:
+            # 如果找不到主体图片，则创建一个默认的占位图片
+            self.circle_pixmap = QPixmap(100, 100)
+            self.circle_pixmap.fill(QColor(255, 192, 203))
             
-            self.node_halo.setPixmap(self.halo_pixmap)
-            self.node_circle.setPixmap(self.circle_pixmap)
+        self.node_halo.setPixmap(self.halo_pixmap)
+        self.node_circle.setPixmap(self.circle_pixmap)
         
         # 设置图片层级和位置
         self.node_halo.setGeometry(0, 0, self.halo_pixmap.width(), self.halo_pixmap.height())
