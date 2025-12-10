@@ -1,28 +1,90 @@
 # main.py
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QSystemTrayIcon, QMenu, QAction
 from PyQt5.QtCore import Qt, QTimer, QPoint
-from PyQt5.QtGui import QPixmap, QCursor
-from PyQt5.QtGui import QPixmap, QCursor, QPainter, QColor
+from PyQt5.QtGui import QPixmap, QCursor, QPainter, QColor, QIcon
 import os
 
 class DesktopPet(QWidget):
     def __init__(self):
         super().__init__()
+        self.is_transparent = False  # 标记是否处于穿透状态
         self.init_ui()
         self.init_pet_logic()
+        self.create_tray_icon()
         
-    def keyPressEvent(self, event):
-        # 按V键切换为穿透状态
-        if event.key() == Qt.Key_V:
+    def create_tray_icon(self):
+        # 创建系统托盘图标和菜单
+        self.tray_icon = QSystemTrayIcon(self)
+        self.tray_icon.setToolTip("lls pet")
+        
+        # 设置托盘图标
+        if os.path.exists("NodeCircle.png"):
+            tray_pixmap = QPixmap("NodeCircle.png")
+            tray_pixmap = self.change_pixmap_color(tray_pixmap, QColor(255, 192, 203))
+            self.tray_icon.setIcon(QIcon(tray_pixmap))
+        else:
+            self.tray_icon.setIcon(QIcon())
+        
+        # 创建托盘菜单
+        self.tray_menu = QMenu()
+        
+        # 添加菜单项
+        self.toggle_transparent_action = QAction("切换穿透状态", self)
+        self.toggle_transparent_action.triggered.connect(self.toggle_transparent)
+        self.tray_menu.addAction(self.toggle_transparent_action)
+        
+        self.toggle_visibility_action = QAction("隐藏桌宠", self)
+        self.toggle_visibility_action.triggered.connect(self.toggle_visibility)
+        self.tray_menu.addAction(self.toggle_visibility_action)
+        
+        quit_action = QAction("退出程序", self)
+        quit_action.triggered.connect(self.quit_application)
+        self.tray_menu.addAction(quit_action)
+        
+        self.tray_icon.setContextMenu(self.tray_menu)
+        self.tray_icon.show()
+        
+    def toggle_transparent(self):
+        """切换穿透状态"""
+        self.is_transparent = not self.is_transparent
+        
+        if self.is_transparent:
             self.setWindowFlags(
                 Qt.FramelessWindowHint |
                 Qt.WindowStaysOnTopHint |
                 Qt.Tool |
                 Qt.WindowTransparentForInput  # 窗口穿透，鼠标事件穿透到下层窗口
             )
-            self.setAttribute(Qt.WA_TranslucentBackground)
-            self.show()  # 重新显示窗口以应用新属性
+            self.toggle_transparent_action.setText("取消穿透状态")
+        else:
+            self.setWindowFlags(
+                Qt.FramelessWindowHint |
+                Qt.WindowStaysOnTopHint |
+                Qt.Tool
+            )
+            self.toggle_transparent_action.setText("切换穿透状态")
+            
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.show()  # 重新显示窗口以应用新属性
+        
+    def toggle_visibility(self):
+        """切换桌宠可见性"""
+        if self.isVisible():
+            self.hide()
+            self.toggle_visibility_action.setText("显示桌宠")
+        else:
+            self.show()
+            self.toggle_visibility_action.setText("隐藏桌宠")
+            
+    def quit_application(self):
+        """退出应用程序"""
+        QApplication.quit()
+        
+    def keyPressEvent(self, event):
+        # 按V键切换为穿透状态
+        if event.key() == Qt.Key_V:
+            self.toggle_transparent()
             event.accept()
         else:
             super().keyPressEvent(event)
@@ -30,9 +92,9 @@ class DesktopPet(QWidget):
     def init_ui(self):
         # 设置窗口属性
         self.setWindowFlags(
-            Qt.FramelessWindowHint |  # 无边框
-            Qt.WindowStaysOnTopHint |  # 置顶显示
-            Qt.Tool  # 隐藏任务栏图标
+            Qt.FramelessWindowHint |      # 无边框
+            Qt.WindowStaysOnTopHint |     # 置顶显示
+            Qt.Tool                       # 隐藏任务栏图标
         )
         self.setAttribute(Qt.WA_TranslucentBackground)  # 透明背景
         
@@ -93,7 +155,7 @@ class DesktopPet(QWidget):
         # 设置定时器用于更新位置
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_position)
-        self.timer.start(10)  # 20ms更新一次，约50FPS
+        self.timer.start(10)  # 10ms更新一次
         
         # 移动速度
         self.speed = 1.0
@@ -132,9 +194,10 @@ class DesktopPet(QWidget):
             # 记录鼠标全局位置与窗口左上角的偏移量
             self.drag_position = event.globalPos() - self.pos()
             event.accept()
-        # 添加右键点击关闭程序功能
+        # 添加右键菜单
         elif event.button() == Qt.RightButton:
-            QApplication.quit()  # 关闭整个应用程序
+            # 显示系统托盘菜单
+            self.tray_menu.popup(QCursor.pos())
             event.accept()
             
     def mouseMoveEvent(self, event):
@@ -147,8 +210,12 @@ class DesktopPet(QWidget):
 
 def main():
     app = QApplication(sys.argv)
+    app.setQuitOnLastWindowClosed(False)  # 隐藏窗口时不退出应用程序
+    app.setApplicationName("lls pet")     # 设置应用程序名称为"lls pet"
+    
     pet = DesktopPet()
     pet.show()
+    
     sys.exit(app.exec_())
 
 if __name__ == '__main__':
