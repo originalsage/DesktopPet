@@ -57,7 +57,7 @@ pip install pyinstaller
 在项目根目录下运行以下命令：
 
 ```bash
-pyinstaller --onefile --windowed --icon=img/NodeCircle.png --add-data "img;img" main.py
+pyinstaller --onefile --windowed --icon=img/lls.png --add-data "img;img" main.py
 ```
 
 参数说明：
