@@ -2,6 +2,8 @@
 
 一个基于 PyQt5 开发的桌面宠物应用，在桌面上显示一个可爱的跟随鼠标的宠物节点。
 
+[![下载最新版本](https://img.shields.io/badge/下载-最新版本-brightgreen)](https://github.com/originalsage/DesktopPet/releases)
+[![快速开始](https://img.shields.io/badge/使用-快速开始-blue)](#快速开始)
 
 ## 功能特性
 
@@ -16,10 +18,10 @@
 
 ### 方法一：直接运行可执行文件（推荐给普通用户）
 
-1. 下载打包好的exe文件
-2. 双击运行即可
+1. 前往[发布页面](https://github.com/originalsage/DesktopPet/releases)下载最新版本的exe文件
+2. 双击下载的exe文件即可运行
 
-注意：如果是第一次运行，可能需要允许防火墙访问权限。
+注意：如果是第一次运行，可能需要允许防火墙访问权限。程序启动后将在桌面显示宠物，并在系统托盘中添加图标。
 
 ### 方法二：源码运行（需要Python环境）
 
@@ -30,13 +32,13 @@
 
 #### 安装依赖
 
-```bash
+```
 pip install PyQt5
 ```
 
 #### 运行程序
 
-```bash
+```
 python main.py
 ```
 
@@ -48,7 +50,7 @@ python main.py
 
 ### 1. 安装PyInstaller
 
-```bash
+```
 pip install pyinstaller
 ```
 
@@ -56,7 +58,7 @@ pip install pyinstaller
 
 在项目根目录下运行以下命令：
 
-```bash
+```
 pyinstaller --onefile --windowed --icon=img/lls.png --add-data "img;img" main.py
 ```
 
